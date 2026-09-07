@@ -1,0 +1,759 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Arcknowledge | Directory Portal</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#f0fdf4',
+              100: '#dcfce7',
+              500: '#22c55e',
+              600: '#16a34a',
+              700: '#15803d',
+              900: '#14532d',
+            }
+          }
+        }
+      }
+    }
+  </script>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col font-sans">
+
+  <header class="bg-slate-800/80 backdrop-blur-md border-b border-slate-700 sticky top-0 z-30">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <div class="flex items-center space-x-3 cursor-pointer" onclick="showCategoriesView()">
+        <div class="w-10 h-10 bg-gradient-to-tr from-brand-600 to-emerald-400 rounded-xl flex items-center justify-center text-white text-xl font-bold shadow-lg shadow-brand-500/20">
+          A
+        </div>
+        <span class="text-xl font-extrabold tracking-tight text-white">Arc<span class="text-brand-500">knowledge</span></span>
+      </div>
+
+      <button onclick="openAdminAuthModal()" class="px-4 py-2 bg-slate-700 hover:bg-slate-600 text-slate-200 text-sm font-semibold rounded-lg transition-all flex items-center gap-2 border border-slate-600">
+        <i class="fa-solid fa-lock text-brand-500"></i> Admin Panel
+      </button>
+    </div>
+  </header>
+
+  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    
+    <div class="text-center max-w-3xl mx-auto mb-10">
+      <h1 class="text-3xl sm:text-5xl font-black text-white tracking-tight mb-3">
+        Knowledge & Resource <span class="text-brand-500">Directory</span>
+      </h1>
+      <p id="heroSubtitle" class="text-slate-400 text-sm sm:text-base">Select a category to explore resources and organizations.</p>
+    </div>
+
+    <div class="bg-slate-800/90 border border-slate-700/80 rounded-2xl p-4 sm:p-6 shadow-xl mb-10 space-y-4">
+      <div class="relative">
+        <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-lg"></i>
+        <input 
+          type="text" 
+          id="searchInput" 
+          placeholder="Search by name, acronym, category, or city..." 
+          oninput="handleSearchInput()"
+          class="w-full bg-slate-900 border border-slate-700 rounded-xl py-3.5 pl-12 pr-4 text-white placeholder-slate-500 focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500 transition-all"
+        >
+      </div>
+
+      <div id="filterControls" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Filter by Country</label>
+          <select id="countryFilter" onchange="onCountryChange()" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white focus:outline-none focus:border-brand-500">
+            <option value="">All Countries</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Filter by City</label>
+          <select id="cityFilter" onchange="renderActiveView()" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white focus:outline-none focus:border-brand-500">
+            <option value="">All Cities</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div id="navigationHeader" class="hidden items-center justify-between mb-6">
+      <button onclick="showCategoriesView()" class="inline-flex items-center gap-2 text-sm font-semibold text-brand-500 hover:text-brand-400 transition-colors">
+        <i class="fa-solid fa-arrow-left"></i> Back to Categories
+      </button>
+      <span id="activeCategoryTitle" class="text-xl font-bold text-white"></span>
+    </div>
+
+    <div id="categoriesGrid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+      </div>
+
+    <div id="cardsGrid" class="hidden grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      </div>
+
+    <div id="emptyState" class="hidden text-center py-16 bg-slate-800/40 border border-dashed border-slate-700 rounded-2xl">
+      <i class="fa-solid fa-folder-open text-4xl text-slate-600 mb-3"></i>
+      <h3 class="text-lg font-bold text-slate-300">No resources or categories found</h3>
+      <p class="text-sm text-slate-500 mt-1">Try adjusting your search query or reset your selection.</p>
+    </div>
+
+  </main>
+
+  <footer class="bg-slate-950 border-t border-slate-800 py-8 mt-12">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-slate-500 text-sm space-y-4">
+      <div class="flex flex-wrap justify-center gap-6 font-medium text-slate-400">
+        <button onclick="openModal('privacyModal')" class="hover:text-brand-500 transition-colors">Privacy Policy</button>
+        <button onclick="openModal('termsUseModal')" class="hover:text-brand-500 transition-colors">Terms of Use</button>
+        <button onclick="openModal('termsCondModal')" class="hover:text-brand-500 transition-colors">Terms & Conditions</button>
+      </div>
+      <p>&copy; <span id="year"></span> Arcknowledge. All rights reserved.</p>
+    </div>
+  </footer>
+
+  <div id="adminAuthModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+    <div class="bg-slate-800 border border-slate-700 rounded-2xl p-6 w-full max-w-md shadow-2xl relative">
+      <button onclick="closeModal('adminAuthModal')" class="absolute top-4 right-4 text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-xl"></i></button>
+      <h3 class="text-xl font-bold text-white mb-1"><i class="fa-solid fa-shield-halved text-brand-500 mr-2"></i>Admin Access</h3>
+      <p class="text-xs text-slate-400 mb-4">Enter master password to access administrative settings. (Demo: <span class="text-brand-500 font-mono">admin123</span>)</p>
+      
+      <form onsubmit="verifyAdmin(event)" class="space-y-4">
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 mb-1">Password</label>
+          <input type="password" id="adminPasswordInput" required class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white focus:outline-none focus:border-brand-500">
+        </div>
+        <p id="authError" class="text-red-400 text-xs hidden">Incorrect password. Access denied.</p>
+        <button type="submit" class="w-full bg-brand-600 hover:bg-brand-500 text-white font-semibold py-2.5 rounded-lg transition-all">Unlock Dashboard</button>
+      </form>
+    </div>
+  </div>
+
+  <div id="adminModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4 overflow-y-auto">
+    <div class="bg-slate-800 border border-slate-700 rounded-2xl p-6 w-full max-w-4xl shadow-2xl relative my-8">
+      <button onclick="closeModal('adminModal')" class="absolute top-4 right-4 text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-xl"></i></button>
+      
+      <h3 class="text-2xl font-bold text-white mb-6 flex items-center gap-2">
+        <i class="fa-solid fa-sliders text-brand-500"></i> Admin Management Dashboard
+      </h3>
+
+      <div class="flex border-b border-slate-700 mb-6 gap-4">
+        <button id="tabItemBtn" onclick="switchAdminTab('items')" class="pb-3 font-semibold text-sm border-b-2 border-brand-500 text-brand-500 flex items-center gap-2">
+          <i class="fa-solid fa-boxes-stacked"></i> Manage Items
+        </button>
+        <button id="tabCatBtn" onclick="switchAdminTab('categories')" class="pb-3 font-semibold text-sm border-b-2 border-transparent text-slate-400 hover:text-white flex items-center gap-2">
+          <i class="fa-solid fa-layer-group"></i> Category Locks
+        </button>
+      </div>
+
+      <div id="adminItemsTab" class="space-y-6">
+        <form id="itemForm" onsubmit="handleSaveItem(event)" class="bg-slate-900/60 p-4 rounded-xl border border-slate-700 space-y-4">
+          <div class="flex items-center justify-between">
+            <h4 id="formTitle" class="text-sm font-bold text-brand-400 uppercase tracking-wider">Add New Item</h4>
+            <button type="button" id="cancelEditBtn" onclick="resetItemForm()" class="hidden text-xs text-slate-400 hover:text-white">Cancel Edit</button>
+          </div>
+
+          <input type="hidden" id="itemId">
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-semibold text-slate-300 mb-1">Country</label>
+              <input type="text" id="addCountry" placeholder="e.g., South Africa" required class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white focus:outline-none focus:border-brand-500">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-300 mb-1">City</label>
+              <input type="text" id="addCity" placeholder="e.g., Johannesburg" required class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white focus:outline-none focus:border-brand-500">
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-semibold text-slate-300 mb-1">Item / Name</label>
+              <input type="text" id="addName" placeholder="e.g., University of Johannesburg" required class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white focus:outline-none focus:border-brand-500">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-300 mb-1">Acronym / Abbreviation</label>
+              <input type="text" id="addAcronym" placeholder="e.g., UJ" required class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white focus:outline-none focus:border-brand-500">
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-semibold text-slate-300 mb-1">Category</label>
+              <input type="text" id="addCategory" placeholder="e.g., Higher Education" required class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white focus:outline-none focus:border-brand-500">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-300 mb-1">Website Link</label>
+              <input type="url" id="addLink" placeholder="https://example.com" required class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white focus:outline-none focus:border-brand-500">
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-slate-300 mb-1">Contact Email AND/OR Number</label>
+            <input type="text" id="addContact" placeholder="e.g., info@uj.ac.za or +27 11 559 4555" required class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white focus:outline-none focus:border-brand-500">
+          </div>
+
+          <div class="flex items-center gap-3 pt-1">
+            <input type="checkbox" id="addRestricted" class="w-4 h-4 accent-amber-500 rounded border-slate-700 bg-slate-900">
+            <label for="addRestricted" class="text-sm font-medium text-slate-300 flex items-center gap-1.5 cursor-pointer">
+              <i class="fa-solid fa-lock text-amber-500"></i> Mark Item as Restricted / Locked
+            </label>
+          </div>
+
+          <button type="submit" id="submitFormBtn" class="w-full bg-brand-600 hover:bg-brand-500 text-white font-semibold py-2.5 rounded-lg transition-all">Save Item</button>
+        </form>
+
+        <div class="space-y-3">
+          <div class="flex flex-col sm:flex-row items-center justify-between gap-3">
+            <h4 class="text-sm font-bold text-slate-300 uppercase tracking-wider">All Managed Items</h4>
+            <div class="relative w-full sm:w-64">
+              <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+              <input 
+                type="text" 
+                id="adminSearchInput" 
+                placeholder="Search admin list..." 
+                oninput="renderAdminItemsTable()" 
+                class="w-full bg-slate-900 border border-slate-700 rounded-lg py-1.5 pl-8 pr-3 text-xs text-white focus:outline-none focus:border-brand-500"
+              >
+            </div>
+          </div>
+
+          <div class="border border-slate-700 rounded-xl overflow-hidden max-h-64 overflow-y-auto">
+            <table class="w-full text-left text-xs text-slate-300">
+              <thead class="bg-slate-900 text-slate-400 sticky top-0 border-b border-slate-700">
+                <tr>
+                  <th class="p-3">Name</th>
+                  <th class="p-3">Category</th>
+                  <th class="p-3">Location</th>
+                  <th class="p-3">Status</th>
+                  <th class="p-3 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="adminItemsTableBody" class="divide-y divide-slate-700/50">
+                </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div id="adminCategoriesTab" class="hidden space-y-4">
+        <p class="text-xs text-slate-400">Locking a category prevents public users from accessing or clicking into its cards.</p>
+        <div id="adminCategoriesList" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div id="privacyModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+    <div class="bg-slate-800 border border-slate-700 rounded-2xl p-6 w-full max-w-2xl shadow-2xl relative max-h-[80vh] overflow-y-auto">
+      <button onclick="closeModal('privacyModal')" class="absolute top-4 right-4 text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-xl"></i></button>
+      <h3 class="text-2xl font-bold text-white mb-4">Privacy Policy</h3>
+      <div class="text-slate-300 text-sm leading-relaxed space-y-3">
+        <p>At Arcknowledge, accessible from our web platform, one of our main priorities is the privacy of our visitors. This Privacy Policy document contains types of information that is collected and recorded by Arcknowledge and how we use it.</p>
+        <p>If you have additional questions or require more information about our Privacy Policy, do not hesitate to contact us.</p>
+        <p>This policy applies only to our online activities and is valid for visitors to our website with regards to the information that they shared and/or collect in Arcknowledge.</p>
+      </div>
+    </div>
+  </div>
+
+  <div id="termsUseModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+    <div class="bg-slate-800 border border-slate-700 rounded-2xl p-6 w-full max-w-2xl shadow-2xl relative max-h-[80vh] overflow-y-auto">
+      <button onclick="closeModal('termsUseModal')" class="absolute top-4 right-4 text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-xl"></i></button>
+      <h3 class="text-2xl font-bold text-white mb-4">Terms of Use</h3>
+      <div class="text-slate-300 text-sm leading-relaxed space-y-3">
+        <p>By accessing this website, you agree to be bound by these Terms of Use, all applicable laws and regulations, and agree that you are responsible for compliance with any applicable local laws.</p>
+        <p>Permission is granted to temporarily view materials and open external resource links on Arcknowledge for personal, non-commercial transitory viewing only.</p>
+      </div>
+    </div>
+  </div>
+
+  <div id="termsCondModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+    <div class="bg-slate-800 border border-slate-700 rounded-2xl p-6 w-full max-w-2xl shadow-2xl relative max-h-[80vh] overflow-y-auto">
+      <button onclick="closeModal('termsCondModal')" class="absolute top-4 right-4 text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-xl"></i></button>
+      <h3 class="text-2xl font-bold text-white mb-4">Terms and Conditions</h3>
+      <div class="text-slate-300 text-sm leading-relaxed space-y-3">
+        <p>These terms and conditions outline the rules and regulations for the use of Arcknowledge's Website.</p>
+        <p>By accessing this website we assume you accept these terms and conditions. Do not continue to use Arcknowledge if you do not agree to take all of the terms and conditions stated on this page.</p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    document.getElementById('year').innerText = new Date().getFullYear();
+
+    // Default Items Seed Data
+    const defaultData = [
+      {
+        id: '1',
+        country: 'South Africa',
+        city: 'Johannesburg',
+        name: 'University of Johannesburg',
+        acronym: 'UJ',
+        category: 'Higher Education',
+        link: 'https://www.uj.ac.za',
+        contact: 'mylife@uj.ac.za | +27 11 559 4555',
+        isRestricted: false
+      },
+      {
+        id: '2',
+        country: 'South Africa',
+        city: 'Pretoria',
+        name: 'University of Pretoria',
+        acronym: 'UP',
+        category: 'Higher Education',
+        link: 'https://www.up.ac.za',
+        contact: 'ssc@up.ac.za',
+        isRestricted: true
+      },
+      {
+        id: '3',
+        country: 'South Africa',
+        city: 'Cape Town',
+        name: 'University of Cape Town',
+        acronym: 'UCT',
+        category: 'Research Institute',
+        link: 'https://www.uct.ac.za',
+        contact: '+27 21 650 9111',
+        isRestricted: false
+      },
+      {
+        id: '4',
+        country: 'South Africa',
+        city: 'Durban',
+        name: 'National Student Financial Aid Scheme',
+        acronym: 'NSFAS',
+        category: 'Bursaries & Funding',
+        link: 'https://www.nsfas.org.za',
+        contact: 'info@nsfas.org.za',
+        isRestricted: false
+      }
+    ];
+
+    // Local Storage State
+    let items = JSON.parse(localStorage.getItem('arcknowledge_items')) || defaultData;
+    let lockedCategories = JSON.parse(localStorage.getItem('arcknowledge_locked_cats')) || [];
+    
+    // View State
+    let selectedCategory = null; 
+
+    function saveData() {
+      localStorage.setItem('arcknowledge_items', JSON.stringify(items));
+      localStorage.setItem('arcknowledge_locked_cats', JSON.stringify(lockedCategories));
+    }
+
+    // Modal Helpers
+    function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
+    function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+
+    // Admin Auth
+    function openAdminAuthModal() {
+      document.getElementById('adminPasswordInput').value = '';
+      document.getElementById('authError').classList.add('hidden');
+      openModal('adminAuthModal');
+    }
+
+    function verifyAdmin(e) {
+      e.preventDefault();
+      const pwd = document.getElementById('adminPasswordInput').value;
+      if (pwd === 'admin123') {
+        closeModal('adminAuthModal');
+        openModal('adminModal');
+        renderAdminItemsTable();
+        renderAdminCategoryLocks();
+      } else {
+        document.getElementById('authError').classList.remove('hidden');
+      }
+    }
+
+    // Tab Switcher inside Admin
+    function switchAdminTab(tab) {
+      const itemsTab = document.getElementById('adminItemsTab');
+      const catsTab = document.getElementById('adminCategoriesTab');
+      const itemBtn = document.getElementById('tabItemBtn');
+      const catBtn = document.getElementById('tabCatBtn');
+
+      if (tab === 'items') {
+        itemsTab.classList.remove('hidden');
+        catsTab.classList.add('hidden');
+        itemBtn.className = "pb-3 font-semibold text-sm border-b-2 border-brand-500 text-brand-500 flex items-center gap-2";
+        catBtn.className = "pb-3 font-semibold text-sm border-b-2 border-transparent text-slate-400 hover:text-white flex items-center gap-2";
+      } else {
+        itemsTab.classList.add('hidden');
+        catsTab.classList.remove('hidden');
+        catBtn.className = "pb-3 font-semibold text-sm border-b-2 border-brand-500 text-brand-500 flex items-center gap-2";
+        itemBtn.className = "pb-3 font-semibold text-sm border-b-2 border-transparent text-slate-400 hover:text-white flex items-center gap-2";
+        renderAdminCategoryLocks();
+      }
+    }
+
+    // Execute Open Action with Locked Check
+    function executeOpenAction(value, isRestricted) {
+      if (isRestricted) {
+        alert('Access Denied: This resource link or contact info is restricted/locked.');
+        return;
+      }
+      if (!value) return;
+      let cleanVal = value.trim();
+
+      if (cleanVal.startsWith('http://') || cleanVal.startsWith('https://')) {
+        window.open(cleanVal, '_blank');
+      } else if (cleanVal.includes('@') && !cleanVal.includes(' ')) {
+        window.location.href = `mailto:${cleanVal}`;
+      } else if (/^[+]*[(]{0,1}[0-9]{1,4}[)]{0,1}[-\s\./0-9]*$/.test(cleanVal)) {
+        window.location.href = `tel:${cleanVal.replace(/\s+/g, '')}`;
+      } else {
+        window.open(`https://www.google.com/search?q=${encodeURIComponent(cleanVal)}`, '_blank');
+      }
+    }
+
+    // Navigation & View Rendering Logic
+    function showCategoriesView() {
+      selectedCategory = null;
+      document.getElementById('searchInput').value = '';
+      document.getElementById('navigationHeader').classList.add('hidden');
+      document.getElementById('navigationHeader').classList.remove('flex');
+      document.getElementById('heroSubtitle').innerText = 'Select a category to explore resources and organizations.';
+      populateDropdowns();
+      renderCategoriesGrid();
+    }
+
+    function selectCategory(catName) {
+      if (lockedCategories.includes(catName)) {
+        alert(`The category "${catName}" is currently locked by administrators.`);
+        return;
+      }
+      selectedCategory = catName;
+      document.getElementById('navigationHeader').classList.remove('hidden');
+      document.getElementById('navigationHeader').classList.add('flex');
+      document.getElementById('activeCategoryTitle').innerText = catName;
+      document.getElementById('heroSubtitle').innerText = `Showing all verified items under "${catName}"`;
+      populateDropdowns();
+      renderItemsGrid();
+    }
+
+    function handleSearchInput() {
+      const searchVal = document.getElementById('searchInput').value.trim();
+      if (searchVal.length > 0) {
+        // Switch into search view
+        selectedCategory = null;
+        document.getElementById('navigationHeader').classList.add('hidden');
+        document.getElementById('navigationHeader').classList.remove('flex');
+        document.getElementById('heroSubtitle').innerText = `Showing search results for "${searchVal}"`;
+        renderItemsGrid();
+      } else {
+        if (!selectedCategory) {
+          showCategoriesView();
+        } else {
+          renderItemsGrid();
+        }
+      }
+    }
+
+    function renderActiveView() {
+      if (selectedCategory || document.getElementById('searchInput').value.trim().length > 0) {
+        renderItemsGrid();
+      } else {
+        renderCategoriesGrid();
+      }
+    }
+
+    // Render Homepage: Categories Only
+    function renderCategoriesGrid() {
+      const categoriesGrid = document.getElementById('categoriesGrid');
+      const cardsGrid = document.getElementById('cardsGrid');
+      const emptyState = document.getElementById('emptyState');
+
+      cardsGrid.classList.add('hidden');
+      categoriesGrid.classList.remove('hidden');
+
+      // Unique Categories
+      const categories = [...new Set(items.map(i => i.category))].sort();
+
+      if (categories.length === 0) {
+        categoriesGrid.classList.add('hidden');
+        emptyState.classList.remove('hidden');
+        return;
+      }
+
+      emptyState.classList.add('hidden');
+
+      categoriesGrid.innerHTML = categories.map(cat => {
+        const itemCount = items.filter(i => i.category === cat).length;
+        const isLocked = lockedCategories.includes(cat);
+
+        return `
+          <div onclick="selectCategory('${cat}')" class="bg-slate-800 border ${isLocked ? 'border-amber-500/40 opacity-75' : 'border-slate-700 hover:border-brand-500 cursor-pointer'} rounded-2xl p-6 transition-all hover:shadow-xl group relative flex flex-col justify-between">
+            <div>
+              <div class="flex items-center justify-between mb-4">
+                <div class="w-12 h-12 rounded-xl ${isLocked ? 'bg-amber-500/10 text-amber-500' : 'bg-brand-500/10 text-brand-500'} flex items-center justify-center text-xl font-bold">
+                  <i class="fa-solid ${isLocked ? 'fa-lock' : 'fa-folder'}"></i>
+                </div>
+                ${isLocked ? `<span class="text-xs px-2 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20 font-medium">Locked</span>` : ''}
+              </div>
+              <h3 class="text-lg font-bold text-white group-hover:text-brand-400 transition-colors">${cat}</h3>
+              <p class="text-xs text-slate-400 mt-1">${itemCount} resource${itemCount !== 1 ? 's' : ''} listed</p>
+            </div>
+            <div class="mt-6 flex items-center gap-1 text-xs font-semibold ${isLocked ? 'text-amber-500' : 'text-brand-500'}">
+              <span>${isLocked ? 'Access Restricted' : 'Browse Category'}</span>
+              <i class="fa-solid ${isLocked ? 'fa-lock' : 'fa-arrow-right'} text-xs"></i>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // Render Items Grid
+    function renderItemsGrid() {
+      const categoriesGrid = document.getElementById('categoriesGrid');
+      const cardsGrid = document.getElementById('cardsGrid');
+      const emptyState = document.getElementById('emptyState');
+
+      categoriesGrid.classList.add('hidden');
+      cardsGrid.classList.remove('hidden');
+
+      const search = document.getElementById('searchInput').value.toLowerCase().trim();
+      const selectedCountry = document.getElementById('countryFilter').value.toLowerCase();
+      const selectedCity = document.getElementById('cityFilter').value.toLowerCase();
+
+      const filtered = items.filter(item => {
+        const matchesCategory = !selectedCategory || item.category.toLowerCase() === selectedCategory.toLowerCase();
+        const matchesCountry = !selectedCountry || item.country.toLowerCase() === selectedCountry;
+        const matchesCity = !selectedCity || item.city.toLowerCase() === selectedCity;
+
+        const matchesSearch = !search || (
+          item.name.toLowerCase().includes(search) ||
+          item.acronym.toLowerCase().includes(search) ||
+          item.category.toLowerCase().includes(search) ||
+          item.city.toLowerCase().includes(search)
+        );
+
+        return matchesCategory && matchesCountry && matchesCity && matchesSearch;
+      });
+
+      if (filtered.length === 0) {
+        cardsGrid.innerHTML = '';
+        emptyState.classList.remove('hidden');
+        return;
+      }
+
+      emptyState.classList.add('hidden');
+      cardsGrid.innerHTML = filtered.map(item => `
+        <div class="bg-slate-800 border border-slate-700/70 rounded-xl p-5 hover:border-slate-600 transition-all flex flex-col justify-between shadow-lg relative group ${item.isRestricted ? 'opacity-80' : ''}">
+          <div>
+            <div class="flex items-center justify-between gap-2 mb-3">
+              <span class="text-xs font-semibold px-2.5 py-1 rounded-md bg-brand-500/10 text-brand-400 border border-brand-500/20">
+                ${item.category}
+              </span>
+              <div class="flex items-center gap-2">
+                ${item.isRestricted ? `<span class="text-xs px-2 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20 font-medium flex items-center gap-1"><i class="fa-solid fa-lock text-[10px]"></i> Locked</span>` : ''}
+                <span class="text-xs text-slate-400 font-medium"><i class="fa-solid fa-location-dot text-slate-500 mr-1"></i>${item.city}, ${item.country}</span>
+              </div>
+            </div>
+
+            <h2 class="text-xl font-bold text-white group-hover:text-brand-400 transition-colors flex items-center gap-2">
+              ${item.name}
+              <span class="text-xs px-2 py-0.5 bg-slate-700 text-slate-300 rounded font-mono font-normal">${item.acronym}</span>
+            </h2>
+
+            <p class="text-xs text-slate-400 mt-2 flex items-center gap-1.5">
+              <i class="fa-solid fa-address-card text-slate-500"></i> 
+              ${item.isRestricted ? '<span class="italic text-slate-500">[Locked Contact Information]</span>' : item.contact}
+            </p>
+          </div>
+
+          <div class="mt-6 pt-4 border-t border-slate-700/60 flex flex-wrap gap-2">
+            <button 
+              onclick="executeOpenAction('${item.link}', ${item.isRestricted})" 
+              class="${item.isRestricted ? 'bg-slate-700 cursor-not-allowed opacity-60' : 'bg-brand-600 hover:bg-brand-500'} flex-1 text-white text-xs font-semibold py-2 px-3 rounded-lg transition-all flex items-center justify-center gap-1.5"
+            >
+              <i class="fa-solid ${item.isRestricted ? 'fa-lock' : 'fa-up-right-from-square'}"></i> ${item.isRestricted ? 'Link Locked' : 'Open Link'}
+            </button>
+            <button 
+              onclick="executeOpenAction('${item.contact}', ${item.isRestricted})" 
+              class="${item.isRestricted ? 'bg-slate-700 cursor-not-allowed opacity-60' : 'bg-slate-700 hover:bg-slate-600'} text-slate-200 text-xs font-semibold py-2 px-3 rounded-lg transition-all flex items-center justify-center gap-1.5 border border-slate-600"
+            >
+              <i class="fa-solid ${item.isRestricted ? 'fa-lock' : 'fa-envelope'}"></i> ${item.isRestricted ? 'Contact Locked' : 'Open Contact'}
+            </button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    // Dropdowns Helper
+    function populateDropdowns() {
+      const countrySelect = document.getElementById('countryFilter');
+      const selectedCountry = countrySelect.value;
+      
+      const countries = [...new Set(items.map(i => i.country))].sort();
+      countrySelect.innerHTML = '<option value="">All Countries</option>' + 
+        countries.map(c => `<option value="${c}" ${c === selectedCountry ? 'selected' : ''}>${c}</option>`).join('');
+
+      populateCityDropdown();
+    }
+
+    function populateCityDropdown() {
+      const countrySelect = document.getElementById('countryFilter');
+      const citySelect = document.getElementById('cityFilter');
+      const selectedCountry = countrySelect.value;
+      const selectedCity = citySelect.value;
+
+      let filteredItems = items;
+      if (selectedCountry) {
+        filteredItems = items.filter(i => i.country.toLowerCase() === selectedCountry.toLowerCase());
+      }
+
+      const cities = [...new Set(filteredItems.map(i => i.city))].sort();
+      citySelect.innerHTML = '<option value="">All Cities</option>' + 
+        cities.map(c => `<option value="${c}" ${c === selectedCity ? 'selected' : ''}>${c}</option>`).join('');
+    }
+
+    function onCountryChange() {
+      populateCityDropdown();
+      renderActiveView();
+    }
+
+    // ==================== ADMIN OPERATIONS ====================
+
+    function handleSaveItem(e) {
+      e.preventDefault();
+      const id = document.getElementById('itemId').value;
+      
+      const itemData = {
+        id: id || Date.now().toString(),
+        country: document.getElementById('addCountry').value.trim(),
+        city: document.getElementById('addCity').value.trim(),
+        name: document.getElementById('addName').value.trim(),
+        acronym: document.getElementById('addAcronym').value.trim(),
+        category: document.getElementById('addCategory').value.trim(),
+        link: document.getElementById('addLink').value.trim(),
+        contact: document.getElementById('addContact').value.trim(),
+        isRestricted: document.getElementById('addRestricted').checked
+      };
+
+      if (id) {
+        // Edit item
+        const index = items.findIndex(i => i.id === id);
+        if (index !== -1) items[index] = itemData;
+      } else {
+        // Add item
+        items.unshift(itemData);
+      }
+
+      saveData();
+      resetItemForm();
+      renderAdminItemsTable();
+      populateDropdowns();
+      renderActiveView();
+    }
+
+    function editItem(id) {
+      const item = items.find(i => i.id === id);
+      if (!item) return;
+
+      document.getElementById('itemId').value = item.id;
+      document.getElementById('addCountry').value = item.country;
+      document.getElementById('addCity').value = item.city;
+      document.getElementById('addName').value = item.name;
+      document.getElementById('addAcronym').value = item.acronym;
+      document.getElementById('addCategory').value = item.category;
+      document.getElementById('addLink').value = item.link;
+      document.getElementById('addContact').value = item.contact;
+      document.getElementById('addRestricted').checked = item.isRestricted;
+
+      document.getElementById('formTitle').innerText = 'Edit Item';
+      document.getElementById('submitFormBtn').innerText = 'Update Item';
+      document.getElementById('cancelEditBtn').classList.remove('hidden');
+    }
+
+    function removeItem(id) {
+      if (confirm('Are you sure you want to remove this item?')) {
+        items = items.filter(i => i.id !== id);
+        saveData();
+        renderAdminItemsTable();
+        populateDropdowns();
+        renderActiveView();
+      }
+    }
+
+    function resetItemForm() {
+      document.getElementById('itemForm').reset();
+      document.getElementById('itemId').value = '';
+      document.getElementById('formTitle').innerText = 'Add New Item';
+      document.getElementById('submitFormBtn').innerText = 'Save Item';
+      document.getElementById('cancelEditBtn').classList.add('hidden');
+    }
+
+    function renderAdminItemsTable() {
+      const search = document.getElementById('adminSearchInput').value.toLowerCase().trim();
+      const tbody = document.getElementById('adminItemsTableBody');
+
+      const filtered = items.filter(i => 
+        !search || 
+        i.name.toLowerCase().includes(search) || 
+        i.category.toLowerCase().includes(search) || 
+        i.city.toLowerCase().includes(search)
+      );
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-slate-500">No items found matching criteria.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = filtered.map(i => `
+        <tr class="hover:bg-slate-800/80">
+          <td class="p-3 font-semibold text-white">${i.name} (${i.acronym})</td>
+          <td class="p-3 text-slate-400">${i.category}</td>
+          <td class="p-3 text-slate-400">${i.city}, ${i.country}</td>
+          <td class="p-3">
+            ${i.isRestricted ? '<span class="text-amber-400 font-semibold"><i class="fa-solid fa-lock"></i> Locked</span>' : '<span class="text-emerald-400">Open</span>'}
+          </td>
+          <td class="p-3 text-right space-x-2">
+            <button onclick="editItem('${i.id}')" class="text-brand-400 hover:text-brand-300 font-semibold"><i class="fa-solid fa-pen"></i> Edit</button>
+            <button onclick="removeItem('${i.id}')" class="text-red-400 hover:text-red-300 font-semibold"><i class="fa-solid fa-trash"></i> Remove</button>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    function renderAdminCategoryLocks() {
+      const container = document.getElementById('adminCategoriesList');
+      const categories = [...new Set(items.map(i => i.category))].sort();
+
+      if (categories.length === 0) {
+        container.innerHTML = '<p class="text-xs text-slate-500">No categories existing in the data list.</p>';
+        return;
+      }
+
+      container.innerHTML = categories.map(cat => {
+        const isLocked = lockedCategories.includes(cat);
+        return `
+          <div class="bg-slate-900 border border-slate-700 rounded-xl p-4 flex items-center justify-between">
+            <span class="font-semibold text-sm text-white">${cat}</span>
+            <button onclick="toggleCategoryLock('${cat}')" class="px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 ${isLocked ? 'bg-amber-500/20 text-amber-400 border border-amber-500/40' : 'bg-slate-800 text-slate-300 hover:bg-slate-700 border border-slate-600'}">
+              <i class="fa-solid ${isLocked ? 'fa-lock' : 'fa-lock-open'}"></i>
+              ${isLocked ? 'Locked' : 'Unlocked'}
+            </button>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function toggleCategoryLock(categoryName) {
+      if (lockedCategories.includes(categoryName)) {
+        lockedCategories = lockedCategories.filter(c => c !== categoryName);
+      } else {
+        lockedCategories.push(categoryName);
+      }
+      saveData();
+      renderAdminCategoryLocks();
+      renderActiveView();
+    }
+
+    // Initialize Application
+    window.addEventListener('DOMContentLoaded', () => {
+      showCategoriesView();
+    });
+  </script>
+</body>
+</html>
